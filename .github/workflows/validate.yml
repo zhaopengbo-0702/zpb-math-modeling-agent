@@ -1,0 +1,29 @@
+name: Validate Skill
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run behavior tests
+        env:
+          PYTHONUTF8: "1"
+          MPLBACKEND: "Agg"
+        run: python -m unittest discover -s tests -v
+      - name: Validate portable skill package
+        run: python scripts/validate_bundle.py
+      - name: Verify compute-only demonstration
+        run: python scripts/run_demo.py --output "${{ runner.temp }}/zpb-demo" --compute-only
+      - name: Create release archive
+        run: python scripts/make_release.py --output dist

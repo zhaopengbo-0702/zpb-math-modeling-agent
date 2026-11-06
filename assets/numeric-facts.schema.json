@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "zpb numeric facts",
+  "type": "object",
+  "required": ["facts"],
+  "properties": {
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "value", "unit", "source"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "value": {"type": "number"},
+          "unit": {"type": "string"},
+          "source": {
+            "type": "object",
+            "required": ["artifact", "locator"],
+            "properties": {
+              "artifact": {"type": "string", "minLength": 1},
+              "locator": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}
