@@ -1,12 +1,12 @@
 ---
 name: zpb-math-modeling-agent
-description: "以中文完成从数学建模题目及附件到可复现论文的端到端工作：自主选择适配的研究生数学工具，执行计算、数值检验、独立高清科研图、近年文献核验、LaTeX排版和提交打包。适用于竞赛建模、研究型课程项目及既有建模论文的完整修订；显示名为zpb数学建模agent。"
+description: "以中文完成从数学建模题目及附件到可复现论文的端到端工作：自主选择适配的研究生数学工具，执行计算、数值检验、独立高清科研图、近年文献核验、LaTeX排版和提交打包。适用于竞赛建模、研究型课程项目及既有建模论文的完整修订；显示名为zpb-math-modeling-agent。"
 license: MIT
 metadata:
-  short-description: "zpb数学建模agent：题目驱动的高级数学建模、真实计算与中文论文交付"
+  short-description: "zpb-math-modeling-agent：题目驱动的高级数学建模、真实计算与中文论文交付"
 ---
 
-# zpb数学建模agent
+# zpb-math-modeling-agent
 
 把用户给出的题目、附件、模板和最新修改要求，转化为一套结果可追溯、图文一致、可本地编译的中文数学建模论文。用户给出题目后直接执行；只有缺失信息会阻断关键计算时才集中询问，同时推进不依赖该信息的部分。
 

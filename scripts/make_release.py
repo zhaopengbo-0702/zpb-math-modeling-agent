@@ -43,7 +43,7 @@ def release(root: Path, output: Path, validate: bool = True) -> dict:
         contents.append((relative.as_posix(), content))
     if not any(record["file"] == "SKILL.md" for record in records):
         raise ValueError("A source release must include SKILL.md.")
-    manifest = {"name": SLUG, "display_name": "zpb数学建模agent", "version": VERSION,
+    manifest = {"name": SLUG, "display_name": "zpb-math-modeling-agent", "version": VERSION,
                 "files": records, "excludes": sorted(SKIP)}
     output.mkdir(parents=True, exist_ok=True)
     target = output / f"{SLUG}-v{VERSION}.zip"

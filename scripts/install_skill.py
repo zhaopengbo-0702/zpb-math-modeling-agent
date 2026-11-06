@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         target = install(args.source, args.skills_root, args.replace)
     except (OSError, ValueError) as error:
         parser.exit(1, f"Installation failed: {error}\n")
-    print(json.dumps({"installed": str(target), "display_name": "zpb数学建模agent",
+    print(json.dumps({"installed": str(target), "display_name": "zpb-math-modeling-agent",
                       "invocation": "$zpb-math-modeling-agent"}, ensure_ascii=False, indent=2))
     return 0
 

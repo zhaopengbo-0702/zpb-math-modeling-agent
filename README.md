@@ -1,8 +1,8 @@
-# zpb数学建模agent
+# zpb-math-modeling-agent
 
 从题目和附件出发，由智能体完成中文数学建模论文：问题分析、高级数学建模、真实计算、独立科研图、近年文献、LaTeX排版与结果交付。
 
-**显示名称：zpb数学建模agent**  
+**显示名称：zpb-math-modeling-agent**  
 **技能标识：`zpb-math-modeling-agent`**  
 **许可证：MIT**
 
@@ -34,7 +34,7 @@ python scripts/install_skill.py
 python scripts/install_skill.py --skills-root ~/.codex/skills
 ```
 
-然后在新对话中选择 **zpb数学建模agent**，或在消息中使用 `$zpb-math-modeling-agent`。其他兼容技能目录的智能体可读取本目录 `SKILL.md` 并按相同流程执行。
+然后在新对话中选择 **zpb-math-modeling-agent**，或在消息中使用 `$zpb-math-modeling-agent`。其他兼容技能目录的智能体可读取本目录 `SKILL.md` 并按相同流程执行。
 
 安装目录约定依据 [OpenAI官方技能文档](https://developers.openai.com/codex/skills/)。技能不需要私有API密钥，也不依赖开发者电脑上的其他skill。
 

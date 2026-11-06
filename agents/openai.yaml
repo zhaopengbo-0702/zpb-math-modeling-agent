@@ -1,5 +1,5 @@
 interface:
-  display_name: "zpb数学建模agent"
+  display_name: "zpb-math-modeling-agent"
   short_description: "从题目到中文建模论文：高级数学、真实计算、独立高清图件与完整交付"
   default_prompt: "使用 $zpb-math-modeling-agent，根据我提供的题目、附件和模板自主选择适配的高级数学方法，完成真实计算、中文高清图件、充实的普通紧凑三线表、近年引用及可复现论文交付。"
 policy:

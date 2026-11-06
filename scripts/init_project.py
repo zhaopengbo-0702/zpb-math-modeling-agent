@@ -84,7 +84,7 @@ def initialize(output: Path, inputs: list[Path], title: str, template: Path | No
     config = {
         "schema_version": 1,
         "skill": "zpb-math-modeling-agent",
-        "display_name": "zpb数学建模agent",
+        "display_name": "zpb-math-modeling-agent",
         "title": title,
         "language": "zh-CN",
         "created_utc": datetime.now(timezone.utc).isoformat(),

@@ -31,7 +31,7 @@ def validate(root: Path) -> dict:
     ui = root / "agents/openai.yaml"
     try:
         data = yaml.safe_load(ui.read_text(encoding="utf-8"))
-        if data["interface"]["display_name"] != "zpb数学建模agent":
+        if data["interface"]["display_name"] != "zpb-math-modeling-agent":
             failures.append("Display name differs from requested name")
         if "$zpb-math-modeling-agent" not in data["interface"].get("default_prompt", ""):
             failures.append("Default prompt must invoke the skill")
