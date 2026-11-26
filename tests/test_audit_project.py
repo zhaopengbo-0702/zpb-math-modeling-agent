@@ -6,14 +6,17 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "audit_project.py"
 SPEC = importlib.util.spec_from_file_location("zpb_audit_project", SCRIPT)
 AUDIT = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(AUDIT)
+with patch.object(sys, "path", [str(SCRIPT.parent), *sys.path]):
+    SPEC.loader.exec_module(AUDIT)
 HAS_PYPDF = importlib.util.find_spec("pypdf") is not None
 HAS_LAYOUT = importlib.util.find_spec("pdfplumber") is not None
 
@@ -72,6 +75,25 @@ class ProjectAuditTests(unittest.TestCase):
     def test_missing_citation_fails(self):
         (self.project / "sections" / "method.tex").write_text("\\citep[see][p. 2]{missing}", encoding="utf-8")
         self.assertIn("bibliography.undefined_citations", self.failed_codes(self.run_audit()))
+
+    def test_uses_configured_pdf_unless_explicitly_overridden(self):
+        configured = self.project / "delivery" / "Final Report.PDF"
+        original = self.project / "delivery" / "paper.pdf"
+        original.rename(configured)
+        self.config["manuscript"]["output_pdf"] = "delivery\\Final Report.PDF"
+        self.write_config()
+
+        report = self.run_audit()
+
+        self.assertEqual(report["status"], "passed", report)
+        self.assertEqual(report["checks"]["pdf"]["file"], "delivery/Final Report.PDF")
+        report = AUDIT.audit_project(self.project, "delivery/paper.pdf")
+        self.assertIn("pdf.missing", self.failed_codes(report))
+
+    def test_rejects_pdf_path_outside_project(self):
+        self.config["manuscript"]["output_pdf"] = "../outside.pdf"
+        self.write_config()
+        self.assertIn("pdf.path", self.failed_codes(self.run_audit()))
 
     def test_duplicate_bibliography_keys_fail(self):
         path = self.project / "references.bib"

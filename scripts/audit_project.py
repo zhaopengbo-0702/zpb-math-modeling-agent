@@ -11,6 +11,8 @@ from pathlib import Path
 import re
 import sys
 
+from build_paper import manuscript_pdf_path
+
 
 INPUT_RE = re.compile(r"\\(?:input|include)\s*\{([^}]+)\}")
 CITE_RE = re.compile(
@@ -409,7 +411,10 @@ class Audit:
 
     def pdf(self, config, pdf_name, require_abstract):
         try:
-            path = inside(self.project, pdf_name)
+            if pdf_name is None:
+                path = manuscript_pdf_path(self.project, config.get("manuscript", {}))
+            else:
+                path = inside(self.project, pdf_name)
         except ValueError as exc:
             self.record("failed", "pdf.path", str(exc))
             return
@@ -500,7 +505,7 @@ class Audit:
         return self.report
 
 
-def audit_project(project, pdf="delivery/paper.pdf", require_abstract_page_one=False):
+def audit_project(project, pdf=None, require_abstract_page_one=False):
     project = Path(project).resolve()
     if not project.is_dir():
         raise ValueError(f"Project directory does not exist: {project}")
@@ -510,7 +515,7 @@ def audit_project(project, pdf="delivery/paper.pdf", require_abstract_page_one=F
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True, help="Manuscript project directory")
-    parser.add_argument("--pdf", default="delivery/paper.pdf", help="PDF path relative to project")
+    parser.add_argument("--pdf", help="PDF path override; defaults to manuscript.output_pdf or delivery/paper.pdf")
     parser.add_argument("--output", default="notes/audit.json", help="JSON report path relative to project")
     parser.add_argument("--require-abstract-page-one", action="store_true", help="Require a keywords label on the first PDF page")
     args = parser.parse_args(argv)

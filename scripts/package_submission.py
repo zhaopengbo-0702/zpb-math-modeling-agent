@@ -21,17 +21,17 @@ class PackagingError(ValueError):
 
 
 SUPPORT_DIRS = ("inputs", "code", "data", "results", "figures", "tables", "sections", "notes", "template")
-ROOT_FILES = ("main.tex", "project.json", "numeric_facts.json", "references.bib", "README.md", "main.pdf", "requirements.txt")
+ROOT_FILES = ("main.tex", "project.json", "numeric_facts.json", "references.bib", "README.md", "requirements.txt")
 SKIP_DIRS = {"node_modules", "venv", ".venv", "env", "__pycache__", "cache", "caches",
              "reference-cache", "reference_cache", "tmp", "temp", "previews", "archive", "archives", "history", "backups"}
 SKIP_SUFFIXES = {".aux", ".log", ".toc", ".out", ".bbl", ".blg", ".fls", ".fdb_latexmk",
                  ".synctex", ".zip", ".7z", ".rar", ".pyc", ".pyo", ".bak", ".tmp", ".lock"}
 SUPPORT_SUFFIXES = {".py", ".m", ".r", ".jl", ".c", ".cpp", ".h", ".hpp", ".mjs", ".js", ".ts",
                     ".json", ".yaml", ".yml", ".toml", ".txt", ".md", ".ps1", ".sh", ".bat", ".ipynb",
-                    ".csv", ".tsv", ".xlsx", ".xls", ".npz", ".npy", ".mat", ".h5", ".hdf5", ".parquet",
+                    ".csv", ".tsv", ".xlsx", ".xls", ".xlsb", ".npz", ".npy", ".mat", ".h5", ".hdf5", ".parquet",
                     ".feather", ".arrow", ".pdf", ".svg", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".eps",
                     ".tex", ".bib", ".cls", ".sty", ".bst", ".bbx", ".cbx", ".lbx", ".dbx",
-                    ".cfg", ".dtx", ".ins", ".docx", ".odt"}
+                    ".cfg", ".dtx", ".ins", ".docx", ".odt", ".pptx"}
 NOTE_NAMES = {"task-contract.md", "task-contract.json", "problem-contract.md", "problem-contract.json",
               "method-plan.md", "model-plan.md", "method-ledger.json", "methods-ledger.json", "model-ledger.json",
               "claim-ledger.json", "claims-ledger.json", "calculation-ledger.json", "implementation-ledger.json",

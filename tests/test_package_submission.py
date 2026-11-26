@@ -223,6 +223,41 @@ class PackagingTests(unittest.TestCase):
                     self.assertEqual(hashlib.sha256(payload).hexdigest(), record["sha256"])
                     self.assertEqual(payload, (project / record["source_rel"]).read_bytes())
 
+    def test_editable_figures_and_binary_workbooks_are_support_material(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project = project_at(Path(temporary))
+            (project / "main.pdf").write_bytes(b"stale local build")
+            fixtures = {
+                "figures/workflow.pptx": b"editable diagram fixture",
+                "inputs/observations.xlsb": b"binary workbook fixture",
+            }
+            for relative, payload in fixtures.items():
+                path = project / relative
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(payload)
+
+            pack.package_project(project)
+
+            with zipfile.ZipFile(project / "delivery/submission.zip") as archive:
+                self.assertEqual(set(archive.namelist()), {"paper.pdf", "result1.xlsx", "MANIFEST.json"})
+            with zipfile.ZipFile(project / "delivery/reproducibility.zip") as archive:
+                self.assertNotIn("main.pdf", archive.namelist())
+                for relative, payload in fixtures.items():
+                    self.assertEqual(archive.read(relative), payload)
+
+    def test_explicit_root_main_pdf_is_archived(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project = project_at(Path(temporary), ["main.pdf"])
+            (project / "main.pdf").write_bytes(b"declared final PDF")
+
+            pack.package_project(project)
+
+            with zipfile.ZipFile(project / "delivery/submission.zip") as archive:
+                self.assertEqual(set(archive.namelist()), {"main.pdf", "MANIFEST.json"})
+                self.assertEqual(archive.read("main.pdf"), b"declared final PDF")
+            with zipfile.ZipFile(project / "delivery/reproducibility.zip") as archive:
+                self.assertEqual(archive.read("main.pdf"), b"declared final PDF")
+
     def test_version_change_preserves_previous_complete_archives(self):
         with tempfile.TemporaryDirectory() as temporary:
             project = project_at(Path(temporary))

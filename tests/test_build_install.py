@@ -18,6 +18,11 @@ def load(name):
     return module
 
 
+def compiler_output(command, cwd):
+    option = next(argument for argument in command if argument.startswith("-output-directory="))
+    return cwd / option.split("=", 1)[1]
+
+
 class BuildInstallTests(unittest.TestCase):
     def test_initializer_prints_chinese_path_under_legacy_encoding(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -57,9 +62,12 @@ class BuildInstallTests(unittest.TestCase):
 
             def fake_run(command, cwd, log, timeout):
                 commands.append(command)
-                (cwd / "main.aux").write_text(r"\bibdata{references}\citation{item}", encoding="utf-8")
-                (cwd / "main.pdf").write_bytes(b"%PDF-test")
-                (cwd / "main.log").write_text("successful", encoding="utf-8")
+                if command[0] == "xelatex":
+                    work = compiler_output(command, cwd)
+                    (work / "main.aux").write_text(r"\bibdata{references}", encoding="utf-8")
+                    (work / "chapter.aux").write_text(r"\citation{item}", encoding="utf-8")
+                    (work / "main.pdf").write_bytes(b"%PDF-test")
+                    (work / "main.log").write_text("successful", encoding="utf-8")
 
             with patch.object(module, "executable", side_effect=lambda name, explicit=None: name), patch.object(module, "run_pass", side_effect=fake_run):
                 report = module.build(project)
@@ -68,6 +76,11 @@ class BuildInstallTests(unittest.TestCase):
             self.assertEqual(report["bibliography_backend"], "bibtex")
             self.assertEqual([cmd[0] for cmd in commands], ["xelatex", "bibtex", "xelatex", "xelatex"])
             self.assertEqual((project / "delivery/paper.pdf").read_bytes(), b"%PDF-test")
+            work = compiler_output(commands[0], project)
+            self.assertEqual(project / commands[1][1], work / "main.aux")
+            self.assertFalse((project / "main.pdf").exists())
+            self.assertFalse((project / "main.aux").exists())
+            self.assertFalse(work.exists())
 
     def test_build_runs_biber_for_current_biblatex_aux_and_for_new_bcf(self):
         module = load("build_paper")
@@ -75,23 +88,23 @@ class BuildInstallTests(unittest.TestCase):
             with self.subTest(detection=detection), tempfile.TemporaryDirectory() as directory:
                 project = Path(directory)
                 (project / "main.tex").write_text("hello", encoding="utf-8")
-                if detection == "aux-markers":
-                    (project / "main.bcf").write_text("existing biber control", encoding="utf-8")
                 commands = []
 
                 def fake_run(command, cwd, log, timeout):
                     commands.append(command)
                     if command[0] == "xelatex":
                         aux = r"\abx@aux@refcontext{none/global//global/global}" if detection == "aux-markers" else ""
-                        (cwd / "main.aux").write_text(aux, encoding="utf-8")
-                        if detection == "new-bcf" and not (cwd / "main.bcf").exists():
-                            (cwd / "main.bcf").write_text("new biber control", encoding="utf-8")
-                        (cwd / "main.pdf").write_bytes(b"%PDF-test")
-                        (cwd / "main.log").write_text("successful", encoding="utf-8")
+                        (compiler_output(command, cwd) / "main.aux").write_text(aux, encoding="utf-8")
+                        if not (compiler_output(command, cwd) / "main.bcf").exists():
+                            (compiler_output(command, cwd) / "main.bcf").write_text("new biber control", encoding="utf-8")
+                        (compiler_output(command, cwd) / "main.pdf").write_bytes(b"%PDF-test")
+                        (compiler_output(command, cwd) / "main.log").write_text("successful", encoding="utf-8")
 
                 with patch.object(module, "executable", side_effect=lambda name, explicit=None: explicit or name), patch.object(module, "run_pass", side_effect=fake_run):
                     report = module.build(project, biber="chosen-biber")
                 self.assertEqual([command[0] for command in commands], ["xelatex", "chosen-biber", "xelatex", "xelatex"])
+                work = compiler_output(commands[0], project).relative_to(project).as_posix()
+                self.assertEqual(commands[1][1:], ["--input-directory", work, "--output-directory", work, "main.bcf"])
                 self.assertFalse(report["bibtex_run"])
                 self.assertTrue(report["biber_run"])
                 self.assertEqual(report["bibliography_backend"], "biber")
@@ -107,9 +120,11 @@ class BuildInstallTests(unittest.TestCase):
 
                 def fake_run(command, cwd, log, timeout):
                     commands.append(command)
-                    (cwd / "main.aux").write_text(aux_text, encoding="utf-8")
-                    (cwd / "main.pdf").write_bytes(b"%PDF-test")
-                    (cwd / "main.log").write_text("successful", encoding="utf-8")
+                    if command[0] == "xelatex":
+                        work = compiler_output(command, cwd)
+                        (work / "main.aux").write_text(aux_text, encoding="utf-8")
+                        (work / "main.pdf").write_bytes(b"%PDF-test")
+                        (work / "main.log").write_text("successful", encoding="utf-8")
 
                 with patch.object(module, "executable", side_effect=lambda name, explicit=None: name), patch.object(module, "run_pass", side_effect=fake_run):
                     report = module.build(project)
@@ -129,10 +144,10 @@ class BuildInstallTests(unittest.TestCase):
                 return name
 
             def fake_run(command, cwd, log, timeout):
-                (cwd / "main.aux").write_text(r"\abx@aux@refcontext{none}", encoding="utf-8")
-                (cwd / "main.bcf").write_text("biber control", encoding="utf-8")
-                (cwd / "main.pdf").write_bytes(b"%PDF-test")
-                (cwd / "main.log").write_text("successful", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.aux").write_text(r"\abx@aux@refcontext{none}", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.bcf").write_text("biber control", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.pdf").write_bytes(b"%PDF-test")
+                (compiler_output(command, cwd) / "main.log").write_text("successful", encoding="utf-8")
 
             with patch.object(module, "executable", side_effect=fake_executable), patch.object(module, "run_pass", side_effect=fake_run):
                 with self.assertRaisesRegex(FileNotFoundError, "biber is unavailable"):
@@ -146,7 +161,7 @@ class BuildInstallTests(unittest.TestCase):
             (project / "main.tex").write_text("hello", encoding="utf-8")
 
             def fake_run(command, cwd, log, timeout):
-                (cwd / "main.aux").write_text(r"\abx@aux@refcontext{none}", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.aux").write_text(r"\abx@aux@refcontext{none}", encoding="utf-8")
 
             with patch.object(module, "executable", return_value="xelatex"), patch.object(module, "run_pass", side_effect=fake_run):
                 with self.assertRaisesRegex(RuntimeError, "no .bcf control file"):
@@ -159,9 +174,9 @@ class BuildInstallTests(unittest.TestCase):
             (project / "main.tex").write_text("hello", encoding="utf-8")
 
             def fake_run(command, cwd, log, timeout):
-                (cwd / "main.aux").write_text("", encoding="utf-8")
-                (cwd / "main.pdf").write_bytes(b"%PDF-test")
-                (cwd / "main.log").write_text(r"Overfull \hbox (10pt too wide)", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.aux").write_text("", encoding="utf-8")
+                (compiler_output(command, cwd) / "main.pdf").write_bytes(b"%PDF-test")
+                (compiler_output(command, cwd) / "main.log").write_text(r"Overfull \hbox (10pt too wide)", encoding="utf-8")
 
             with patch.object(module, "executable", return_value="xelatex"), patch.object(module, "run_pass", side_effect=fake_run):
                 with self.assertRaises(RuntimeError):
@@ -173,12 +188,14 @@ class BuildInstallTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             (project / "example.tex").write_text("hello", encoding="utf-8")
-            (project / "project.json").write_text(json.dumps({"title": "保留标题"}), encoding="utf-8")
+            output = "delivery/final/Research Report.pdf"
+            (project / "project.json").write_text(
+                json.dumps({"title": "保留标题", "manuscript": {"output_pdf": output}}), encoding="utf-8")
 
             def fake_run(command, cwd, log, timeout):
-                (cwd / "example.aux").write_text("", encoding="utf-8")
-                (cwd / "example.pdf").write_bytes(b"%PDF-test")
-                (cwd / "example.log").write_text("successful", encoding="utf-8")
+                (compiler_output(command, cwd) / "example.aux").write_text("", encoding="utf-8")
+                (compiler_output(command, cwd) / "example.pdf").write_bytes(b"%PDF-test")
+                (compiler_output(command, cwd) / "example.log").write_text("successful", encoding="utf-8")
 
             with patch.object(module, "executable", return_value="xelatex"), patch.object(module, "run_pass", side_effect=fake_run):
                 module.build(project, main="example.tex")
@@ -187,6 +204,21 @@ class BuildInstallTests(unittest.TestCase):
             self.assertEqual(config["manuscript"]["main"], "example.tex")
             self.assertEqual(config["title"], "保留标题")
             self.assertEqual(report["main"], "example.tex")
+            self.assertEqual(config["manuscript"]["output_pdf"], output)
+            self.assertEqual(report["pdf"], output)
+            self.assertEqual((project / output).read_bytes(), b"%PDF-test")
+            self.assertFalse((project / "delivery/paper.pdf").exists())
+
+    def test_configured_pdf_rejects_nonlocal_and_invalid_paths_before_building(self):
+        module = load("build_paper")
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            for invalid in ("../outside.pdf", r"..\outside.pdf", r"C:\outside.pdf", "main.tex", None):
+                with self.subTest(invalid=invalid):
+                    (project / "project.json").write_text(
+                        json.dumps({"manuscript": {"output_pdf": invalid}}), encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "manuscript.output_pdf"):
+                        module.build(project)
 
 
 if __name__ == "__main__":

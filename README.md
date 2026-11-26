@@ -1,6 +1,6 @@
 # zpb-math-modeling-agent
 
-从题目和附件出发，由智能体完成中文数学建模论文：问题分析、高级数学建模、真实计算、独立科研图、近年文献、LaTeX排版与结果交付。
+从题目和附件出发，由智能体按指定语言完成数学建模论文：问题分析、高级数学建模、真实计算、独立科研图、近年文献、LaTeX排版与结果交付。
 
 **显示名称：zpb-math-modeling-agent**  
 **技能标识：`zpb-math-modeling-agent`**  
@@ -10,10 +10,10 @@
 
 ## 产出什么
 
-- 中文论文PDF及可继续编辑的LaTeX工程；优先保留使用者给定的 `example.tex` 模板。
+- 论文 PDF 和可继续编辑的 LaTeX 工程，遵循使用者给定的模板、目录和语言。
 - 每问的模型、数学推导、算法、关键数值及具体结论。
 - 充实的结果表、符号单位表、配置表和验证/敏感性/鲁棒性对照表，正文逐表解释。
-- 来自真实数据或真实数值计算的独立图件，每幅PDF/SVG和600 dpi PNG，中文字体。
+- 来自真实数据或计算的科研图。指定用 PowerPoint 时，交付可编辑流程图源稿和论文用矢量图。
 - 题目要求的Excel/CSV等完整结果文件，含采样、精度和布局约定。
 - 敏感性分析、鲁棒性检验、收敛或基线对照，以及与问题相适配的不确定性分析。
 - 近年文献与就近正文引用、可追溯的数值事实、计算配置、复现代码和提交包。
@@ -45,7 +45,7 @@ python scripts/install_skill.py --skills-root ~/.codex/skills
 ```text
 使用 $zpb-math-modeling-agent 完成这个文件夹中的数学建模题目。
 请先读题目和全部附件，自主选择适配的博士研究生层次数学方法，
-实际运行计算，完成中文论文、独立高清图和题目要求的结果文件。
+实际运行计算，完成指定语言的论文、独立高清图和题目要求的结果文件。
 如果有example.tex，严格沿用它的模板；没有则用技能内置模板。
 摘要逐问交代模型、关键数值和结论，占满第一页版心且不跨页。
 重要内容黑色加粗，不单设文献综述，优先引用近年正式文献。
@@ -80,7 +80,7 @@ python scripts/audit_project.py --project PROJECT
 python scripts/package_submission.py --project PROJECT
 ```
 
-有模板时为初始化命令增加 `--template TEMPLATE_DIR`。复制的模板保留哈希基线，智能体将其正文入口和本地依赖准备到工程根目录，保留原件；例如运行 `python scripts/build_paper.py --project PROJECT --main example.tex`。成功构建后入口自动记录到 `project.json` 的 `manuscript.main`，审计、打包及后续构建沿用它。初始化拒绝覆盖已有非空工程。
+有模板时为初始化命令增加 `--template TEMPLATE_DIR`。复制的模板保留哈希基线，智能体将其正文入口和本地依赖准备到工程根目录，保留原件；例如运行 `python scripts/build_paper.py --project PROJECT --main example.tex`。成功构建后入口记录到 `project.json` 的 `manuscript.main`。如需正式命名，在 `manuscript.output_pdf` 指定项目内的 PDF 路径，并将相同路径列入 `required_deliverables`。初始化拒绝覆盖已有非空工程。
 
 文献核验输入示例：
 
@@ -107,9 +107,9 @@ python scripts/package_submission.py --project PROJECT
 
 每个方法有明确的推导、实现和验证状态。公式与计算接口对应，数值均可追溯。参数敏感性使用实际重算，代理使用独立样本验证，概率区间保留其定义与输入条件。
 
-图件按信息选择：真实演化场、截面、等高线、达标边界、后验密度、误差谱、响应面和敏感性图。每幅独立制作，白底、清晰黑框、连续色阶、中文单位；复杂三维图须有可读的真实数据结构。
+图型按论点选择。正文呈现代表性证据，重复对照可放附录。流程图按分问展示输入、方法、输出和跨问连接。统一同类图的色阶、字体和比较尺度，按最终 PDF 尺寸验收。 [制图指南](references/figure-design.md)
 
-表格按科学问题规划：量化题每问至少一张关键结果表，另有符号/单位、求解配置、验证及适用的敏感性和鲁棒性表。样式沿用最终论文的普通紧凑三线表，居中、自然列宽、数值右对齐、普通表头，字体和间距继承模板；不强行拉满页面。`scripts/export_tables.py` 从同一结构化数据生成独立LaTeX表和Excel，显示精度与内部精度分别处理。详见 [表格设计](references/table-design.md)。
+表格按科学问题规划：量化题每问至少一张关键结果表，另有符号/单位、求解配置、验证及适用的敏感性和鲁棒性表。样式默认采用紧凑三线表，数值右对齐，字体和间距继承模板。多列内容较拥挤时调整分组和列宽。`scripts/export_tables.py` 从同一结构化数据生成独立LaTeX表和Excel，显示精度与内部精度分别处理。详见 [表格设计](references/table-design.md)。
 
 ![中文扩散演化单图示例](examples/demo/preview.png)
 
